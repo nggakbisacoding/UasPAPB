@@ -11,26 +11,26 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.uas.papb.data.Item
 
-class DataListAdapter(private val mList: List<Item>) : RecyclerView.Adapter<DataListAdapter.ViewHolder>() {
+class DataListAdapter(private val mList: List<Item>? = null) : RecyclerView.Adapter<DataListAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         // inflates the card_view_design view
         // that is used to hold list item
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.user_item_holder, parent, false)
         return ViewHolder(view).listen{ datas, _ ->
-            val item = mList[datas]
+            val item = mList!![datas]
             onClick(parent, item)
         }
     }
 
     // binds the list items to a view
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(mList[position])
+        holder.bind(mList!![position])
     }
 
     // return the number of the items in the list
     override fun getItemCount(): Int {
-        return mList.size
+        return mList!!.size
     }
 
     // Holds the views for adding it to image and text
@@ -56,7 +56,7 @@ class DataListAdapter(private val mList: List<Item>) : RecyclerView.Adapter<Data
         val intent = Intent(parent.context.applicationContext, DetailMovie::class.java)
         intent.putExtra("name", item.name)
         intent.putExtra("author", item.author)
-        intent.putExtra("desc", item.desc)
+        intent.putExtra("desc", item.storyline)
         intent.putExtra("tag", item.tag)
         intent.putExtra("image", item.image)
         intent.putExtra("rating", item.rating)

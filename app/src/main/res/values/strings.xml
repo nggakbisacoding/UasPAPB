@@ -20,5 +20,17 @@
     <string name="movie_desc">Deskripsi</string>
     <string name="mov_rating">Rating :</string>
     <string name="mov_totalrat">20</string>
-    <string name="hello_username">Hello, Username</string>
+    <string name="hello_username">Hello, %1$s!</string>
+    <string name="none">none</string>
+    <string name="cancel">cancel</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="delete_now">Delete Now</string>
+    <string name="account_detail">Account Detail\n</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="disable">Disable For Now</string>
+    <string name="current_password">Current Password</string>
+    <string name="new_password">New Password</string>
+    <string name="confirmation_password">Confirmation Password</string>
+    <string name="update_account">Update Account</string>
 </resources>

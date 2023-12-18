@@ -11,6 +11,8 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
@@ -20,11 +22,13 @@ import com.uas.papb.data.ControllerDB
 import com.uas.papb.data.Item
 import com.uas.papb.data.ItemDao
 import com.uas.papb.databinding.FragmentUserHomeBinding
+import com.uas.papb.util.AddOn.isNetworkAvailable
 import com.uas.papb.util.NetworkMonitor
 
 class UserHomeFragment : Fragment() {
     private lateinit var binding: FragmentUserHomeBinding
     private lateinit var localdb: ControllerDB
+    private lateinit var auth: FirebaseAuth
     private lateinit var firestore: FirebaseFirestore
     private lateinit var recyclerView: RecyclerView
     private lateinit var manager: RecyclerView.LayoutManager
@@ -37,21 +41,27 @@ class UserHomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentUserHomeBinding.inflate(inflater, container, false)
+        val view = inflater.inflate(R.layout.fragment_user_home, container, false)
         localdb = ControllerDB.getDatabase(requireContext())
         firestore = Firebase.firestore
+        auth = Firebase.auth
         networkMonitor = NetworkMonitor(requireContext())
         networkMonitor.registerNetworkCallback(networkCallback)
+
         Thread {
             itemDao = localdb.ItemDao()!!
-            data = itemDao.getAll()
         }.start()
-        recyclerView = requireView().findViewById(R.id.popular_movies)
-        manager = LinearLayoutManager(requireContext())
+        recyclerView = view.findViewById(R.id.popular_movies)
+        manager = LinearLayoutManager(activity)
         return binding.root
     }
 
     override fun onStart() {
         super.onStart()
+        if(auth.currentUser != null) {
+            val username = auth.currentUser!!.displayName
+            binding.tvUsernameDisplay.text = getString(R.string.hello_username, username)
+        }
         getAllData()
     }
 
@@ -63,8 +73,7 @@ class UserHomeFragment : Fragment() {
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
 
         override fun onAvailable(network: Network) {
-            Toast.makeText(requireContext(), "Internet on sync firestore with local room database", Toast.LENGTH_LONG).show()
-            firestore.collection("item").get().addOnSuccessListener { result ->
+            firestore.collection("movie").get().addOnSuccessListener { result ->
                 for(document in result) {
                     val dataItem = document.toObject<Item>()
                     Thread {
@@ -80,14 +89,36 @@ class UserHomeFragment : Fragment() {
 
         override fun onLost(network: Network) {
             Toast.makeText(requireContext(), "Internet off use local Room Database", Toast.LENGTH_SHORT).show()
+            Thread {
+                data = itemDao.getAll()
+            }.start()
         }
     }
 
     private fun getAllData() {
-        recyclerView.apply{
-            myAdapter = DataListAdapter(data!!)
-            layoutManager = manager
-            adapter = myAdapter
+        if(isNetworkAvailable(requireContext())) {
+            val listData = ArrayList<Item>()
+            firestore.collection("movie").get().addOnSuccessListener { result ->
+                for(document in result) {
+                    val obj = document.toObject<Item>()
+                    listData.add(obj)
+                }
+                recyclerView.apply{
+                    myAdapter = DataListAdapter(listData)
+                    layoutManager = manager
+                    adapter = myAdapter
+                }
+            }
+        } else {
+            Thread{
+                val mdata = itemDao.getAll()
+                recyclerView.apply{
+                    myAdapter = DataListAdapter(mdata)
+                    layoutManager = manager
+                    adapter = myAdapter
+                }
+                data = mdata
+            }.start()
         }
     }
 }

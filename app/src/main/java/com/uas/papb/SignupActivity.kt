@@ -84,7 +84,10 @@ class SignupActivity: AppCompatActivity() {
             editor.clear()
             editor.apply()
         } else {
-            checkUser(email!!)
+            if(email != null) {
+                startActivity(Intent(baseContext, LoginActivity::class.java))
+                finish()
+            }
         }
     }
 
@@ -122,7 +125,6 @@ class SignupActivity: AppCompatActivity() {
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
 
         override fun onAvailable(network: Network) {
-            Toast.makeText(applicationContext, "Internet on sync firestore with local room database", Toast.LENGTH_LONG).show()
             firestore.collection("user").get().addOnSuccessListener { result ->
                 for(document in result) {
                     val dataUser = document.toObject<User>()
@@ -188,30 +190,5 @@ class SignupActivity: AppCompatActivity() {
             finish()
         }
         return
-    }
-
-    private fun checkUser(email: String) {
-        if(email.isNotBlank()) {
-            if(auth.currentUser != null && auth.currentUser!!.email == email) {
-                startActivity(Intent(applicationContext, MainActivity::class.java))
-                finish()
-            } else {
-                startActivity(Intent(baseContext, LoginActivity::class.java))
-                finish()
-            }
-        } else {
-            if(email.isNotBlank()) {
-                startActivity(Intent(applicationContext, LoginActivity::class.java))
-                finish()
-            }
-            else if(auth.currentUser != null && email.isBlank()) {
-                auth.signOut()
-                val editor = sharedpref.edit()
-                editor.clear()
-                editor.apply()
-            } else {
-                return
-            }
-        }
     }
 }

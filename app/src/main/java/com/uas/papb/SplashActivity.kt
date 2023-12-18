@@ -45,13 +45,8 @@ class SplashActivity : AppCompatActivity() {
         }
 
         Handler(Looper.getMainLooper()).postDelayed({
-            if(email != null) {
-                startActivity(Intent(baseContext, LoginActivity::class.java))
-                finish()
-            } else {
-                startActivity(Intent(baseContext, SignupActivity::class.java))
-                finish()
-            }
+            startActivity(Intent(baseContext, LoginActivity::class.java))
+            finish()
         }, 2000)
     }
 

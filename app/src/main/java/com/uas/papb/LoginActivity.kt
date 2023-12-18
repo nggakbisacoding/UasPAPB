@@ -120,17 +120,12 @@ class LoginActivity: AppCompatActivity() {
             auth.signInWithEmailAndPassword(mail, pass).addOnCompleteListener {
                 if(it.isSuccessful) {
                     checkShared(mail,pass)
+                    checkIfEmailVerified()
                 } else {
                     Toast.makeText(this, "Login failed", Toast.LENGTH_SHORT).show()
-                    reloadUI()
                 }
             }
         }
-        checkIfEmailVerified()
-    }
-
-    private fun reloadUI() {
-        return
     }
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
