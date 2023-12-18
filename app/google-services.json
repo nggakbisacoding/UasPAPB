@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "858410195017",
+    "project_id": "uas-papb-3943f",
+    "storage_bucket": "uas-papb-3943f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:858410195017:android:fe70b194249793d40d8798",
+        "android_client_info": {
+          "package_name": "com.uas.papb"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "858410195017-fn4e3mgmjt549qq0o191sbkh7i903es6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.uas.papb",
+            "certificate_hash": "e37db5cbe0dbb6b6ef153862575c3e05546c3707"
+          }
+        },
+        {
+          "client_id": "858410195017-818s0sj9chfs4ipn930dcadjiurd1t82.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAZyln57mGgxuD9te0q2FY5-RD4AH4AgU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "858410195017-818s0sj9chfs4ipn930dcadjiurd1t82.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
