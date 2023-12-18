@@ -33,4 +33,8 @@
     <string name="new_password">New Password</string>
     <string name="confirmation_password">Confirmation Password</string>
     <string name="update_account">Update Account</string>
+    <string name="username">Username</string>
+    <string name="about">About</string>
+    <string name="faq">Faq</string>
+    <string name="log_out">Log Out</string>
 </resources>
