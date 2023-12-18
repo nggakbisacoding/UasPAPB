@@ -149,6 +149,9 @@ class LoginActivity: AppCompatActivity() {
     }
 
     private fun checkShared(email: String, password: String) {
+        if(email == null) {
+            return
+        }
         if(email.isBlank() && auth.currentUser != null) {
             val editor = sharedpref.edit()
             editor.putString(SignupActivity.EMAIL, email)

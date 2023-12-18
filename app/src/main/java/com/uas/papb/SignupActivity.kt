@@ -126,10 +126,9 @@ class SignupActivity: AppCompatActivity() {
                     Thread {
                         userDao.insert(dataUser)
                     }.start()
-                    checkShared(email!!, password!!)
-                    sendEmailVerify(user)
+                    checkShared(usermail, userpass)
                 } else {
-                    Toast.makeText(applicationContext, "Signup Failed", Toast.LENGTH_LONG).show()
+                    sendEmailVerify(auth.currentUser)
                 }
             }
         }
@@ -204,6 +203,9 @@ class SignupActivity: AppCompatActivity() {
     }
 
     private fun checkShared(email: String, password: String) {
+        if(email == null) {
+            return
+        }
         if(email.isBlank() && auth.currentUser != null) {
             val editor = sharedpref.edit()
             editor.putString(EMAIL, email)
