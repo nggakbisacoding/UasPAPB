@@ -20,7 +20,6 @@ import com.uas.papb.data.ControllerDB
 import com.uas.papb.data.User
 import com.uas.papb.data.UserDao
 import com.uas.papb.databinding.ActivitySignupBinding
-import com.uas.papb.util.AddOn.checkShared
 import com.uas.papb.util.AddOn.isValidString
 import com.uas.papb.util.AddOn.notEmpty
 import com.uas.papb.util.NetworkMonitor
@@ -118,8 +117,10 @@ class SignupActivity: AppCompatActivity() {
                         role = ROLE
                     )
                     collection.document(user.uid).set(dataUser)
-                    userDao.insert(dataUser)
-                    checkShared(sharedpref, auth, email!!, password!!)
+                    Thread {
+                        userDao.insert(dataUser)
+                    }.start()
+                    checkShared(email!!, password!!)
                     sendEmailVerify(user)
                 } else {
                     Toast.makeText(applicationContext, "Signup Failed", Toast.LENGTH_LONG).show()
@@ -136,9 +137,13 @@ class SignupActivity: AppCompatActivity() {
                 for(document in result) {
                     val dataUser = document.toObject<User>()
                     if(userDao.selectById(dataUser.id) == dataUser) {
-                        userDao.update(dataUser)
+                        Thread {
+                            userDao.update(dataUser)
+                        }.start()
                     } else {
-                        userDao.insert(dataUser)
+                        Thread {
+                            userDao.insert(dataUser)
+                        }.start()
                     }
                 }
             }
@@ -180,7 +185,7 @@ class SignupActivity: AppCompatActivity() {
             } else {
                 auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
                     if(it.isSuccessful) {
-                        checkShared(sharedpref, auth, email, password)
+                        checkShared(email, password)
                         startActivity(Intent(applicationContext, MainActivity::class.java))
                         finish()
                     }
@@ -189,6 +194,19 @@ class SignupActivity: AppCompatActivity() {
             }
         } else {
             return
+        }
+    }
+
+    private fun checkShared(email: String, password: String) {
+        if(email.isBlank() && auth.currentUser != null) {
+            val editor = sharedpref.edit()
+            editor.putString(EMAIL, email)
+            editor.putString(PASS, password)
+            editor.apply()
+        } else {
+            val editor = sharedpref.edit()
+            editor.clear()
+            editor.apply()
         }
     }
 }

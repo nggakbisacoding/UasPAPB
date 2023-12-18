@@ -22,7 +22,7 @@ abstract class ControllerDB : RoomDatabase() {
                     context.applicationContext,
                     ControllerDB::class.java,
                     "database"
-                ).build()
+                ).allowMainThreadQueries().build()
                 INSTANCE = instance
                 // return instance
                 instance

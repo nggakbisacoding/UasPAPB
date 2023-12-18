@@ -1,6 +1,5 @@
 package com.uas.papb
 
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.ConnectivityManager
@@ -15,7 +14,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.uas.papb.data.ControllerDB
 import com.uas.papb.databinding.ActivityLoginBinding
-import com.uas.papb.util.AddOn.checkShared
 import com.uas.papb.util.AddOn.isNetworkAvailable
 import com.uas.papb.util.NetworkMonitor
 
@@ -36,7 +34,7 @@ class LoginActivity: AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
         auth = Firebase.auth
-        sharedpref = getSharedPreferences(SignupActivity.SHAREDPREF, Context.MODE_PRIVATE)
+        sharedpref = getSharedPreferences(SignupActivity.SHAREDPREF, MODE_PRIVATE)
         db = ControllerDB.getDatabase(applicationContext)
         email = sharedpref.getString(SignupActivity.EMAIL, null)
         password = sharedpref.getString(SignupActivity.PASS, null)
@@ -79,13 +77,15 @@ class LoginActivity: AppCompatActivity() {
                 signin(email!!, password!!)
             }
         } else {
-            val localuser = db.UserDao()?.findbyEmail(email!!)
-            if(!localuser?.email.isNullOrEmpty()) {
-                if(email.equals(localuser?.email) && password?.equals(localuser?.password)!!) {
-                    startActivity(Intent(baseContext, MainActivity::class.java))
-                    finish()
+            Thread {
+                val localuser = db.UserDao()?.findbyEmail(email!!)
+                if(!localuser?.email.isNullOrEmpty()) {
+                    if(email.equals(localuser?.email) && password?.equals(localuser?.password)!!) {
+                        startActivity(Intent(baseContext, MainActivity::class.java))
+                        finish()
+                    }
                 }
-            }
+            }.start()
         }
     }
 
@@ -97,7 +97,7 @@ class LoginActivity: AppCompatActivity() {
     private fun signin(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
             if(it.isSuccessful) {
-                checkShared(sharedpref, auth, email,password)
+                checkShared(email,password)
                 checkIfEmailVerified()
             } else {
                 Toast.makeText(this, "Login failed", Toast.LENGTH_SHORT).show()
@@ -145,6 +145,19 @@ class LoginActivity: AppCompatActivity() {
             finish()
         } else {
             FirebaseAuth.getInstance().signOut()
+        }
+    }
+
+    private fun checkShared(email: String, password: String) {
+        if(email.isBlank() && auth.currentUser != null) {
+            val editor = sharedpref.edit()
+            editor.putString(SignupActivity.EMAIL, email)
+            editor.putString(SignupActivity.PASS, password)
+            editor.apply()
+        } else {
+            val editor = sharedpref.edit()
+            editor.clear()
+            editor.apply()
         }
     }
 }

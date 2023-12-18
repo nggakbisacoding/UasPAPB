@@ -10,21 +10,6 @@ import com.uas.papb.SignupActivity
 import java.util.regex.Pattern
 
 object AddOn {
-    private const val FIELD_NAV = "12345"
-
-     fun checkShared(sharedpref: SharedPreferences, firebase: FirebaseAuth, email: String, password: String) {
-        if(email.isBlank() && firebase.currentUser != null) {
-            val editor = sharedpref.edit()
-            editor.putString(SignupActivity.EMAIL, email)
-            editor.putString(SignupActivity.PASS, password)
-            editor.apply()
-        } else {
-            val editor = sharedpref.edit()
-            editor.clear()
-            editor.apply()
-        }
-    }
-
     private val emailpattern = Pattern.compile(
         "[a-zA-Z0-9+._%\\-]{1,256}" +
                 "@" +
