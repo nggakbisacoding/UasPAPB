@@ -106,29 +106,10 @@ class SignupActivity: AppCompatActivity() {
         if(notEmpty(usermail, userpass)) {
             auth.createUserWithEmailAndPassword(usermail, userpass).addOnCompleteListener {
                 if(it.isSuccessful) {
-                    val user = auth.currentUser
-                    val collection = firestore.collection("users")
-                    val name: List<String> = etName.editText?.text.toString().split(" ")
-                    val editedName = ArrayList<String>()
-                    for(i in name) {
-                        editedName.add(i.replaceFirstChar { firstChar ->
-                            firstChar.uppercase()})
-                    }
-                    val dataUser = User(
-                        id = user!!.uid,
-                        name = editedName.joinToString(separator = " "),
-                        email = user.email,
-                        password = userpass,
-                        profileImage = "https://firebasestorage.googleapis.com/v0/b/eating-go-dabf0.appspot.com/o/file%2FPuraUlunDanuBratan.jpg?alt=media&token=1027db5d-de67-44f7-ad82-38e6921a7d46",
-                        role = ROLE
-                    )
-                    collection.document(user.uid).set(dataUser)
-                    Thread {
-                        userDao.insert(dataUser)
-                    }.start()
-                    checkShared(usermail, userpass)
+                    Toast.makeText(this, "Signup successful please signin manually", Toast.LENGTH_SHORT).show()
+                    sendEmailVerify(auth.currentUser, usermail, userpass)
                 } else {
-                    sendEmailVerify(auth.currentUser)
+                    Toast.makeText(this, "Signup failed", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -165,10 +146,30 @@ class SignupActivity: AppCompatActivity() {
     }
 
 
-    private fun sendEmailVerify(user: FirebaseUser?) {
+    private fun sendEmailVerify(user: FirebaseUser?, usermail: String, userpass: String) {
         user?.sendEmailVerification()?.addOnCompleteListener {
             if(it.isSuccessful) {
                 Toast.makeText(this, "Signup Successful Please check your email", Toast.LENGTH_LONG).show()
+                val collection = firestore.collection("users")
+                val name: List<String> = etName.editText?.text.toString().split(" ")
+                val editedName = ArrayList<String>()
+                for(i in name) {
+                    editedName.add(i.replaceFirstChar { firstChar ->
+                        firstChar.uppercase()})
+                }
+                val dataUser = User(
+                    id = user.uid,
+                    name = editedName.joinToString(separator = " "),
+                    email = user.email,
+                    password = userpass,
+                    profileImage = "https://firebasestorage.googleapis.com/v0/b/eating-go-dabf0.appspot.com/o/file%2FPuraUlunDanuBratan.jpg?alt=media&token=1027db5d-de67-44f7-ad82-38e6921a7d46",
+                    role = ROLE
+                )
+                collection.document(user.uid).set(dataUser)
+                Thread {
+                    userDao.insert(dataUser)
+                }.start()
+                checkShared(usermail, userpass)
                 updateUI(user)
             }
         }
@@ -202,13 +203,10 @@ class SignupActivity: AppCompatActivity() {
         }
     }
 
-    private fun checkShared(email: String, password: String) {
-        if(email == null) {
-            return
-        }
-        if(email.isBlank() && auth.currentUser != null) {
+    private fun checkShared(mail: String, password: String) {
+        if(email == null && auth.currentUser != null) {
             val editor = sharedpref.edit()
-            editor.putString(EMAIL, email)
+            editor.putString(EMAIL, mail)
             editor.putString(PASS, password)
             editor.apply()
         } else {

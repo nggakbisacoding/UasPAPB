@@ -148,13 +148,10 @@ class LoginActivity: AppCompatActivity() {
         }
     }
 
-    private fun checkShared(email: String, password: String) {
-        if(email == null) {
-            return
-        }
-        if(email.isBlank() && auth.currentUser != null) {
+    private fun checkShared(mail: String, password: String) {
+        if(email == null && auth.currentUser != null) {
             val editor = sharedpref.edit()
-            editor.putString(SignupActivity.EMAIL, email)
+            editor.putString(SignupActivity.EMAIL, mail)
             editor.putString(SignupActivity.PASS, password)
             editor.apply()
         } else {
