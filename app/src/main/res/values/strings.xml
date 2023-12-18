@@ -13,4 +13,12 @@
     <string name="name">Name</string>
     <string name="email_address">Email address</string>
     <string name="default_web_client_id">858410195017-818s0sj9chfs4ipn930dcadjiurd1t82.apps.googleusercontent.com</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="top_movie">Top Movie</string>
+    <string name="movie_name">Batman</string>
+    <string name="movie_desc">Deskripsi</string>
+    <string name="mov_rating">Rating :</string>
+    <string name="mov_totalrat">20</string>
+    <string name="hello_username">Hello, Username</string>
 </resources>

@@ -42,7 +42,6 @@ class SignupActivity: AppCompatActivity() {
         const val PASS = "password"
         const val ROLES = "role"
         const val ROLE = "user"
-        const val INTERNET = "internet"
     }
     private var email: String? = null
     private var role: String? = null
@@ -58,7 +57,9 @@ class SignupActivity: AppCompatActivity() {
         email = sharedpref.getString(EMAIL, null)
         password = sharedpref.getString(PASS, null)
         role = sharedpref.getString(ROLES, "user")
-        userDao = db.UserDao()!!
+        Thread {
+            userDao = db.UserDao()!!
+        }.start()
         etName = findViewById(R.id.et_name_signup)
         etEmail = findViewById(R.id.et_email_id_signup)
         etPass = findViewById(R.id.et_password_signup)
@@ -78,8 +79,12 @@ class SignupActivity: AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        if(email != null) {
-            checkUser(email!!, password!!)
+        if(email != auth.currentUser?.email) {
+            val editor = sharedpref.edit()
+            editor.clear()
+            editor.apply()
+        } else {
+            checkUser(email!!)
         }
     }
 
@@ -106,7 +111,6 @@ class SignupActivity: AppCompatActivity() {
         if(notEmpty(usermail, userpass)) {
             auth.createUserWithEmailAndPassword(usermail, userpass).addOnCompleteListener {
                 if(it.isSuccessful) {
-                    Toast.makeText(this, "Signup successful please signin manually", Toast.LENGTH_SHORT).show()
                     sendEmailVerify(auth.currentUser, usermail, userpass)
                 } else {
                     Toast.makeText(this, "Signup failed", Toast.LENGTH_SHORT).show()
@@ -122,15 +126,13 @@ class SignupActivity: AppCompatActivity() {
             firestore.collection("user").get().addOnSuccessListener { result ->
                 for(document in result) {
                     val dataUser = document.toObject<User>()
-                    if(userDao.selectById(dataUser.id) == dataUser) {
-                        Thread {
+                    Thread {
+                        if(userDao.selectById(dataUser.id) == dataUser) {
                             userDao.update(dataUser)
-                        }.start()
-                    } else {
-                        Thread {
+                        } else {
                             userDao.insert(dataUser)
-                        }.start()
-                    }
+                        }
+                    }.start()
                 }
             }
         }
@@ -169,7 +171,11 @@ class SignupActivity: AppCompatActivity() {
                 Thread {
                     userDao.insert(dataUser)
                 }.start()
-                checkShared(usermail, userpass)
+                val editor = sharedpref.edit()
+                editor.putString(EMAIL, usermail)
+                editor.putString(PASS, userpass)
+                editor.putString(ROLES, role)
+                editor.apply()
                 updateUI(user)
             }
         }
@@ -177,42 +183,35 @@ class SignupActivity: AppCompatActivity() {
 
     private fun updateUI(user: FirebaseUser?) {
         if(!user?.isEmailVerified!!) {
-            auth.signOut()
-            startActivity(Intent(applicationContext, LoginActivity::class.java))
+            FirebaseAuth.getInstance().signOut()
+            startActivity(Intent(baseContext, LoginActivity::class.java))
             finish()
         }
+        return
     }
 
-    private fun checkUser(email: String, password: String) {
-        if(email.isNotBlank() && auth.currentUser != null) {
-            if(email == auth.currentUser?.email.toString()) {
+    private fun checkUser(email: String) {
+        if(email.isNotBlank()) {
+            if(auth.currentUser != null && auth.currentUser!!.email == email) {
                 startActivity(Intent(applicationContext, MainActivity::class.java))
                 finish()
             } else {
-                auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
-                    if(it.isSuccessful) {
-                        checkShared(email, password)
-                        startActivity(Intent(applicationContext, MainActivity::class.java))
-                        finish()
-                    }
-                }
-                return
+                startActivity(Intent(baseContext, LoginActivity::class.java))
+                finish()
             }
         } else {
-            return
-        }
-    }
-
-    private fun checkShared(mail: String, password: String) {
-        if(email == null && auth.currentUser != null) {
-            val editor = sharedpref.edit()
-            editor.putString(EMAIL, mail)
-            editor.putString(PASS, password)
-            editor.apply()
-        } else {
-            val editor = sharedpref.edit()
-            editor.clear()
-            editor.apply()
+            if(email.isNotBlank()) {
+                startActivity(Intent(applicationContext, LoginActivity::class.java))
+                finish()
+            }
+            else if(auth.currentUser != null && email.isBlank()) {
+                auth.signOut()
+                val editor = sharedpref.edit()
+                editor.clear()
+                editor.apply()
+            } else {
+                return
+            }
         }
     }
 }

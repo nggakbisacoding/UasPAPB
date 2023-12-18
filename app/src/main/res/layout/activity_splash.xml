@@ -6,17 +6,18 @@
     android:layout_height="match_parent"
     tools:context=".SplashActivity">
 
-
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="400dp"
+        android:background="@color/white_light"
         android:importantForAccessibility="no"
         android:src="@drawable/splash_img"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ImageContrastCheck" />
 
     <ProgressBar
         android:id="@+id/idPBLoading"
@@ -27,7 +28,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:indeterminateTint="@color/white" />
+        android:indeterminateTint="@color/red" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

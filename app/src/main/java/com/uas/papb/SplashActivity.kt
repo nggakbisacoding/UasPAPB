@@ -11,16 +11,28 @@ import android.os.Looper
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import com.uas.papb.util.AddOn.isNetworkAvailable
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
-    private var internet: Boolean? = true
     private lateinit var sharefpref: SharedPreferences
+    private lateinit var auth: FirebaseAuth
+    companion object {
+        const val SHAREDPREF = "shared_keys"
+        const val EMAIL = "email"
+        const val PASS = "password"
+    }
+    private var email: String? = null
+    private var password: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
-        sharefpref = getSharedPreferences(SignupActivity.SHAREDPREF, Context.MODE_PRIVATE)
+        auth = Firebase.auth
+        sharefpref = getSharedPreferences(SHAREDPREF, Context.MODE_PRIVATE)
+        email = sharefpref.getString(EMAIL, null)
+        password = sharefpref.getString(PASS, null)
 
         @Suppress("DEPRECATION")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -33,17 +45,27 @@ class SplashActivity : AppCompatActivity() {
         }
 
         Handler(Looper.getMainLooper()).postDelayed({
-            val i = Intent(applicationContext, SignupActivity::class.java)
-            startActivity(i)
-            finish()
+            if(email != null) {
+                startActivity(Intent(baseContext, LoginActivity::class.java))
+                finish()
+            } else {
+                startActivity(Intent(baseContext, SignupActivity::class.java))
+                finish()
+            }
         }, 2000)
     }
 
     override fun onStart() {
         super.onStart()
-        internet = isNetworkAvailable(applicationContext)
-        val editor = sharefpref.edit()
-        editor.putString(SignupActivity.INTERNET, if(internet as Boolean) "on" else "off")
-        editor.apply()
+        if(auth.currentUser == null) {
+            val editor = sharefpref.edit()
+            editor.clear()
+            editor.apply()
+            return
+        }
+        if(auth.currentUser != null && email == auth.currentUser?.email.toString()) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+        }
     }
 }

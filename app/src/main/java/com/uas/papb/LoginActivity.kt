@@ -10,9 +10,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.Firebase
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.toObject
 import com.uas.papb.data.ControllerDB
+import com.uas.papb.data.User
 import com.uas.papb.databinding.ActivityLoginBinding
 import com.uas.papb.util.AddOn.isNetworkAvailable
 import com.uas.papb.util.NetworkMonitor
@@ -20,25 +26,34 @@ import com.uas.papb.util.NetworkMonitor
 class LoginActivity: AppCompatActivity() {
     private lateinit var sharedpref: SharedPreferences
     private lateinit var binding: ActivityLoginBinding
+    private lateinit var firestore: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
     private lateinit var etemail: EditText
     private lateinit var etpassword: EditText
     private lateinit var googleLogin: MaterialButton
     private lateinit var db: ControllerDB
     private lateinit var networkMonitor: NetworkMonitor
+    companion object {
+        const val SHAREDPREF = "shared_keys"
+        const val EMAIL = "email"
+        const val PASS = "password"
+        const val ROLES = "role"
+        const val ROLE = "user"
+    }
     private var email: String? = null
     private var password: String? = null
-    private var role: String? = null
+    private var role: String? = ROLE
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
         auth = Firebase.auth
-        sharedpref = getSharedPreferences(SignupActivity.SHAREDPREF, MODE_PRIVATE)
+        sharedpref = getSharedPreferences(SHAREDPREF, MODE_PRIVATE)
         db = ControllerDB.getDatabase(applicationContext)
-        email = sharedpref.getString(SignupActivity.EMAIL, null)
-        password = sharedpref.getString(SignupActivity.PASS, null)
-        role = sharedpref.getString(SignupActivity.ROLES, null)
+        firestore = Firebase.firestore
+        email = sharedpref.getString(EMAIL, null)
+        password = sharedpref.getString(PASS, null)
+        role = sharedpref.getString(ROLES, ROLE)
         etemail = findViewById(R.id.email)
         etpassword = findViewById(R.id.password)
         googleLogin = findViewById(R.id.google_login)
@@ -75,6 +90,9 @@ class LoginActivity: AppCompatActivity() {
         if(isNetworkAvailable(applicationContext)) {
             if(email != null) {
                 signin(email!!, password!!)
+                checkShared(email!!, password!!)
+                checkDataUser()
+                updateUI(auth.currentUser)
             }
         } else {
             Thread {
@@ -94,15 +112,25 @@ class LoginActivity: AppCompatActivity() {
         networkMonitor.unregisterNetworkCallback(networkCallback)
     }
 
-    private fun signin(email: String, password: String) {
-        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
-            if(it.isSuccessful) {
-                checkShared(email,password)
-                checkIfEmailVerified()
-            } else {
-                Toast.makeText(this, "Login failed", Toast.LENGTH_SHORT).show()
+    private fun signin(mail: String, pass: String) {
+        if(auth.currentUser != null) {
+            val credential = EmailAuthProvider.getCredential(mail, pass)
+            auth.currentUser!!.reauthenticate(credential)
+        } else {
+            auth.signInWithEmailAndPassword(mail, pass).addOnCompleteListener {
+                if(it.isSuccessful) {
+                    checkShared(mail,pass)
+                } else {
+                    Toast.makeText(this, "Login failed", Toast.LENGTH_SHORT).show()
+                    reloadUI()
+                }
             }
         }
+        checkIfEmailVerified()
+    }
+
+    private fun reloadUI() {
+        return
     }
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
@@ -137,6 +165,14 @@ class LoginActivity: AppCompatActivity() {
         }
     }
 
+    private fun updateUI(user: FirebaseUser?) {
+        if(user == null) {
+            return
+        }
+        this.startActivity(Intent(baseContext, MainActivity::class.java))
+        finish()
+    }
+
     private fun checkIfEmailVerified() {
         val user = FirebaseAuth.getInstance().currentUser
         if (user!!.isEmailVerified) {
@@ -148,16 +184,33 @@ class LoginActivity: AppCompatActivity() {
         }
     }
 
-    private fun checkShared(mail: String, password: String) {
-        if(email == null && auth.currentUser != null) {
+    private fun checkShared(email: String, password: String) {
+        if(role != null) {
+            firestore.collection("users").document(auth.currentUser?.uid.toString()).get().addOnSuccessListener {
+                val dataUser = it.toObject<User>()
+                    val roleses = dataUser?.role
+                sharedpref.edit().apply {
+                    putString(EMAIL, email)
+                    putString(PASS, password)
+                    putString(ROLE, roleses)
+                    apply()
+                }
+                role = roleses
+                }
+            }
+        else {
             val editor = sharedpref.edit()
-            editor.putString(SignupActivity.EMAIL, mail)
-            editor.putString(SignupActivity.PASS, password)
+            editor.putString(EMAIL, email)
+            editor.putString(PASS, password)
             editor.apply()
-        } else {
-            val editor = sharedpref.edit()
-            editor.clear()
-            editor.apply()
+        }
+    }
+
+    private fun checkDataUser() {
+        if(role != null) {
+            firestore.collection("users").document(auth.currentUser!!.uid).get().addOnSuccessListener { dokumen ->
+                role = dokumen.toObject<User>()!!.role
+            }
         }
     }
 }
