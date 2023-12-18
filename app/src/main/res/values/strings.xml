@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Uas PAPB</string>
+    <string name="email">Email</string>
+    <string name="login_now">Login Now</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="or">or</string>
+    <string name="password">Password</string>
+    <string name="don_t_have_an_account_sign_up">Don\'t have an account? Sign Up</string>
+    <string name="already_have_a_account_login_then">Already Have a Account? Login Then</string>
+    <string name="sign_up">Sign up</string>
+    <string name="re_enter_your_password">Re-Enter Your Password</string>
+    <string name="name">Name</string>
+    <string name="email_address">Email address</string>
+    <string name="default_web_client_id">858410195017-818s0sj9chfs4ipn930dcadjiurd1t82.apps.googleusercontent.com</string>
+</resources>
