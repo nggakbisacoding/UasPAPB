@@ -108,9 +108,15 @@ class SignupActivity: AppCompatActivity() {
                 if(it.isSuccessful) {
                     val user = auth.currentUser
                     val collection = firestore.collection("users")
+                    val name: List<String> = etName.editText?.text.toString().split(" ")
+                    val editedName = ArrayList<String>()
+                    for(i in name) {
+                        editedName.add(i.replaceFirstChar { firstChar ->
+                            firstChar.uppercase()})
+                    }
                     val dataUser = User(
                         id = user!!.uid,
-                        name = etName.editText?.text.toString(),
+                        name = editedName.joinToString(separator = " "),
                         email = user.email,
                         password = userpass,
                         profileImage = "https://firebasestorage.googleapis.com/v0/b/eating-go-dabf0.appspot.com/o/file%2FPuraUlunDanuBratan.jpg?alt=media&token=1027db5d-de67-44f7-ad82-38e6921a7d46",
