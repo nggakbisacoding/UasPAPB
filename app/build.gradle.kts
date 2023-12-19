@@ -64,6 +64,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth:22.3.0")
     implementation("com.google.firebase:firebase-firestore:24.10.0")
     implementation("com.google.firebase:firebase-storage:20.3.0")
+    implementation("com.google.firebase:firebase-perf-ktx:20.5.1")
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation ("de.hdodenhof:circleimageview:3.1.0")

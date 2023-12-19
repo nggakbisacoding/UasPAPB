@@ -18,6 +18,12 @@
             android:name=".MainActivity"
             android:exported="false" />
         <activity
+            android:name=".AccountDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DetailMovie"
+            android:exported="false" />
+        <activity
             android:name=".LoginActivity"
             android:exported="false" />
         <activity

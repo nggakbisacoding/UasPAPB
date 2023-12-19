@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import com.uas.papb.data.ControllerDB
@@ -91,7 +92,6 @@ class LoginActivity: AppCompatActivity() {
             if(email != null) {
                 signin(email!!, password!!)
                 checkShared(email!!, password!!)
-                checkDataUser()
                 updateUI(auth.currentUser)
             }
         } else {
@@ -120,6 +120,7 @@ class LoginActivity: AppCompatActivity() {
             auth.signInWithEmailAndPassword(mail, pass).addOnCompleteListener {
                 if(it.isSuccessful) {
                     checkShared(mail,pass)
+                    checkDataUser()
                     checkIfEmailVerified()
                 } else {
                     Toast.makeText(this, "Login failed", Toast.LENGTH_SHORT).show()
@@ -164,6 +165,7 @@ class LoginActivity: AppCompatActivity() {
         if(user == null) {
             return
         }
+
         this.startActivity(Intent(baseContext, MainActivity::class.java))
         finish()
     }
@@ -175,7 +177,15 @@ class LoginActivity: AppCompatActivity() {
             startActivity(Intent(baseContext, MainActivity::class.java))
             finish()
         } else {
+            sendEmailVerify(user)
             FirebaseAuth.getInstance().signOut()
+            return
+        }
+    }
+
+    private fun sendEmailVerify(user: FirebaseUser?) {
+        user!!.sendEmailVerification().addOnSuccessListener {
+            Toast.makeText(baseContext,"Please verify your email!", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -202,10 +212,26 @@ class LoginActivity: AppCompatActivity() {
     }
 
     private fun checkDataUser() {
+        val query = firestore.collection("users")
+        val uid = auth.currentUser!!.uid
+        val dataUser = User(id = auth.currentUser!!.uid,
+            name = auth.currentUser!!.displayName,
+            email = auth.currentUser!!.email,
+            password = null,
+            profileImage = "https://firebasestorage.googleapis.com/v0/b/eating-go-dabf0.appspot.com/o/file%2FPuraUlunDanuBratan.jpg?alt=media&token=1027db5d-de67-44f7-ad82-38e6921a7d46",
+            role = role)
         if(role != null) {
-            firestore.collection("users").document(auth.currentUser!!.uid).get().addOnSuccessListener { dokumen ->
-                role = dokumen.toObject<User>()!!.role
+            query.document(uid).get().addOnSuccessListener { dokumen ->
+                if(dokumen == null) {
+                    query.document(uid).set(dataUser)
+                } else {
+                    role = dokumen.toObject<User>()!!.role
+                }
             }
+        } else {
+            role = "admin"
+            query.document(uid).set(dataUser, SetOptions.merge())
+            query.document(uid).update("role", "admin")
         }
     }
 }

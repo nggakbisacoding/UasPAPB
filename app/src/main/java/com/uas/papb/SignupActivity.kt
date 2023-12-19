@@ -13,9 +13,12 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
+import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.storage
 import com.uas.papb.data.ControllerDB
 import com.uas.papb.data.User
 import com.uas.papb.data.UserDao
@@ -32,6 +35,7 @@ class SignupActivity: AppCompatActivity() {
     private lateinit var db: ControllerDB
     private lateinit var userDao: UserDao
     private lateinit var etName: TextInputLayout
+    private lateinit var storageRef: StorageReference
     private lateinit var etEmail: TextInputLayout
     private lateinit var etPass: TextInputLayout
     private lateinit var etConPass: TextInputLayout
@@ -53,6 +57,7 @@ class SignupActivity: AppCompatActivity() {
         sharedpref = getSharedPreferences(SHAREDPREF, Context.MODE_PRIVATE)
         auth = Firebase.auth
         firestore = Firebase.firestore
+        storageRef = Firebase.storage.reference
         db = ControllerDB.getDatabase(applicationContext)
         email = sharedpref.getString(EMAIL, null)
         password = sharedpref.getString(PASS, null)
@@ -114,6 +119,33 @@ class SignupActivity: AppCompatActivity() {
         if(notEmpty(usermail, userpass)) {
             auth.createUserWithEmailAndPassword(usermail, userpass).addOnCompleteListener {
                 if(it.isSuccessful) {
+                    val user = auth.currentUser
+                    val name: List<String> = etName.editText?.text.toString().split(" ")
+                    val editedName = ArrayList<String>()
+                    for(i in name) {
+                        editedName.add(i.replaceFirstChar { firstChar ->
+                            firstChar.uppercase()})
+                    }
+                    storageRef.child("file/PuraUlunDanuBratan.jpg").downloadUrl.addOnSuccessListener {
+                        val profileUpdates = userProfileChangeRequest {
+                            displayName = editedName.joinToString(separator = " ")
+                            photoUri = it
+                        }
+                        user?.updateProfile(profileUpdates)
+                    }
+                    val collection = firestore.collection("users")
+                    val dataUser = User(
+                        id = user!!.uid,
+                        name = editedName.joinToString(separator = " "),
+                        email = usermail,
+                        password = userpass,
+                        profileImage = "https://firebasestorage.googleapis.com/v0/b/eating-go-dabf0.appspot.com/o/file%2FPuraUlunDanuBratan.jpg?alt=media&token=1027db5d-de67-44f7-ad82-38e6921a7d46",
+                        role = ROLE
+                    )
+                    collection.document(user.uid).set(dataUser)
+                    Thread {
+                        userDao.insert(dataUser)
+                    }.start()
                     sendEmailVerify(auth.currentUser, usermail, userpass)
                 } else {
                     Toast.makeText(this, "Signup failed", Toast.LENGTH_SHORT).show()
@@ -154,25 +186,6 @@ class SignupActivity: AppCompatActivity() {
         user?.sendEmailVerification()?.addOnCompleteListener {
             if(it.isSuccessful) {
                 Toast.makeText(this, "Signup Successful Please check your email", Toast.LENGTH_LONG).show()
-                val collection = firestore.collection("users")
-                val name: List<String> = etName.editText?.text.toString().split(" ")
-                val editedName = ArrayList<String>()
-                for(i in name) {
-                    editedName.add(i.replaceFirstChar { firstChar ->
-                        firstChar.uppercase()})
-                }
-                val dataUser = User(
-                    id = user.uid,
-                    name = editedName.joinToString(separator = " "),
-                    email = user.email,
-                    password = userpass,
-                    profileImage = "https://firebasestorage.googleapis.com/v0/b/eating-go-dabf0.appspot.com/o/file%2FPuraUlunDanuBratan.jpg?alt=media&token=1027db5d-de67-44f7-ad82-38e6921a7d46",
-                    role = ROLE
-                )
-                collection.document(user.uid).set(dataUser)
-                Thread {
-                    userDao.insert(dataUser)
-                }.start()
                 val editor = sharedpref.edit()
                 editor.putString(EMAIL, usermail)
                 editor.putString(PASS, userpass)

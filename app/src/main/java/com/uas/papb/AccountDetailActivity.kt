@@ -67,8 +67,13 @@ class AccountDetailActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         val name: List<String> = auth.currentUser?.displayName.toString().split(" ")
-        fname.text = name[0].toEditable()
-        lname.text = name[1].toEditable()
+        if(name.size <= 1) {
+            fname.text = name[0].toEditable()
+            lname.text = getString(R.string.names, "None").toEditable()
+        } else {
+            fname.text = name[0].toEditable()
+            lname.text = name[1].toEditable()
+        }
 
         val executor = Executors.newSingleThreadExecutor()
         val handler = Handler(Looper.getMainLooper())
@@ -160,13 +165,18 @@ class AccountDetailActivity : AppCompatActivity() {
 
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         try{
-            val sd = getFileName(uri!!)
+            val sd = auth.currentUser!!.uid+""+getFileName(uri!!)
             storageRef.child("file/$sd.jpg").putFile(uri).addOnSuccessListener { _ ->
                 storageRef.child("file/$sd.jpg").downloadUrl.addOnSuccessListener {url ->
                     val photoUri: String?
                     photoUri = url.toString()
                     imageUris = Uri.parse(photoUri)
-                    firestore.collection("users").document(auth.currentUser!!.uid).set("profileImage" to imageUris)
+                    val query = firestore.collection("users").document(auth.currentUser!!.uid)
+                    query.get().addOnSuccessListener {
+                        val snapshot = it.toObject<User>()
+                        val data = User(id = snapshot!!.id, name = snapshot.name, profileImage = photoUri, password = snapshot.password, role = snapshot.role)
+                        query.set(data)
+                    }
                 }
             }
             binding.profileImage.setImageURI(uri)

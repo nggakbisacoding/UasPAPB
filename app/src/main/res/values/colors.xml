@@ -26,4 +26,7 @@
     <color name="mediumBrown">#815B5B</color>
     <color name="lightBrown">#9E7676</color>
     <color name="u">#594545</color>
+    <color name="greyPrimary">#DE000000</color>
+    <color name="greySecondary">#8B000000</color>
+    <color name="greyDisabled">#61000000</color>
 </resources>

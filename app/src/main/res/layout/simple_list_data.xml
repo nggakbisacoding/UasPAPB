@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/content_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:visibility="visible"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/tv_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="phone"
+            android:hint="Name"
+            android:importantForAutofill="no" />
+        <TextView
+            android:id="@+id/tv_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Description"/>
+        <TextView
+            android:id="@+id/tv_author"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Author"/>
+        <TextView
+            android:id="@+id/tv_tag"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Tag"/>
+        <TextView
+            android:id="@+id/tv_image"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Image Path"/>
+        <TextView
+            android:id="@+id/tv_rating"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Rating"/>
+    </LinearLayout>
+</RelativeLayout>
