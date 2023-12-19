@@ -61,7 +61,7 @@ class SignupActivity: AppCompatActivity() {
         db = ControllerDB.getDatabase(applicationContext)
         email = sharedpref.getString(EMAIL, null)
         password = sharedpref.getString(PASS, null)
-        role = sharedpref.getString(ROLES, "user")
+        role = sharedpref.getString(ROLES, ROLE)
         Thread {
             userDao = db.UserDao()!!
         }.start()

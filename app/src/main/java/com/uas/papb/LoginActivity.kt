@@ -39,11 +39,10 @@ class LoginActivity: AppCompatActivity() {
         const val EMAIL = "email"
         const val PASS = "password"
         const val ROLES = "role"
-        const val ROLE = "user"
     }
     private var email: String? = null
     private var password: String? = null
-    private var role: String? = ROLE
+    private var role: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
@@ -54,7 +53,7 @@ class LoginActivity: AppCompatActivity() {
         firestore = Firebase.firestore
         email = sharedpref.getString(EMAIL, null)
         password = sharedpref.getString(PASS, null)
-        role = sharedpref.getString(ROLES, ROLE)
+        role = sharedpref.getString(ROLES, null)
         etemail = findViewById(R.id.email)
         etpassword = findViewById(R.id.password)
         googleLogin = findViewById(R.id.google_login)
@@ -197,7 +196,7 @@ class LoginActivity: AppCompatActivity() {
                 sharedpref.edit().apply {
                     putString(EMAIL, email)
                     putString(PASS, password)
-                    putString(ROLE, roleses)
+                    putString(ROLES, roleses)
                     apply()
                 }
                 role = roleses
@@ -220,7 +219,7 @@ class LoginActivity: AppCompatActivity() {
             password = null,
             profileImage = "https://firebasestorage.googleapis.com/v0/b/eating-go-dabf0.appspot.com/o/file%2FPuraUlunDanuBratan.jpg?alt=media&token=1027db5d-de67-44f7-ad82-38e6921a7d46",
             role = role)
-        if(role != null) {
+        if(role == "user") {
             query.document(uid).get().addOnSuccessListener { dokumen ->
                 if(dokumen == null) {
                     query.document(uid).set(dataUser)
