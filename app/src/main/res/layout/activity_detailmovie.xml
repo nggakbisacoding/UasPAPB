@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/content_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:visibility="visible"
+        android:orientation="vertical">
+        <EditText
+            android:id="@+id/edt_name_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Name"
+            android:importantForAutofill="no" />
+        <EditText
+            android:id="@+id/edt_desc_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Description"/>
+        <EditText
+            android:id="@+id/edt_author_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Author"/>
+        <EditText
+            android:id="@+id/edt_tag_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Tag"/>
+        <EditText
+            android:id="@+id/edt_image_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Image Path"/>
+        <EditText
+            android:id="@+id/edt_rating_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="phone"
+            android:hint="Rating"/>
+        <Button
+            android:id="@+id/btn_update"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Update Data"/>
+        <Button
+            android:id="@+id/btn_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Delete Data"/>
+    </LinearLayout>
+
+</RelativeLayout>

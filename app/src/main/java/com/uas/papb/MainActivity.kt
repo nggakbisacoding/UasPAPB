@@ -56,9 +56,20 @@ class MainActivity : AppCompatActivity() {
         password = sharedpref.getString(PASS, null)
         roles = sharedpref.getString(ROLES, ROLE)
         if(roles != null) {
-            firedb.collection("users").document(fireauth.currentUser!!.uid).get().addOnSuccessListener {documentSnapshot ->
-                val data = documentSnapshot.toObject<User>()
-                roles = data?.role
+            firedb.collection("users").document(fireauth.currentUser?.uid.toString()).get().addOnSuccessListener {
+                if(it != null) {
+                    val dataUser = it.toObject<User>()
+                    val roleses = dataUser?.role
+                    sharedpref.edit().apply {
+                        putString(EMAIL, email)
+                        putString(PASS, password)
+                        putString(ROLES, roleses)
+                        apply()
+                    }
+                    roles = roleses
+                } else {
+                    roles = "admin"
+                }
             }
         }
 

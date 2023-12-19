@@ -189,20 +189,23 @@ class LoginActivity: AppCompatActivity() {
     }
 
     private fun checkShared(email: String, password: String) {
-        if(role != null) {
+        if(role == null) {
             firestore.collection("users").document(auth.currentUser?.uid.toString()).get().addOnSuccessListener {
-                val dataUser = it.toObject<User>()
+                role = if(it != null) {
+                    val dataUser = it.toObject<User>()
                     val roleses = dataUser?.role
-                sharedpref.edit().apply {
-                    putString(EMAIL, email)
-                    putString(PASS, password)
-                    putString(ROLES, roleses)
-                    apply()
-                }
-                role = roleses
+                    sharedpref.edit().apply {
+                        putString(EMAIL, email)
+                        putString(PASS, password)
+                        putString(ROLES, roleses)
+                        apply()
+                    }
+                    roleses
+                } else {
+                    "admin"
                 }
             }
-        else {
+        } else {
             val editor = sharedpref.edit()
             editor.putString(EMAIL, email)
             editor.putString(PASS, password)
@@ -216,7 +219,7 @@ class LoginActivity: AppCompatActivity() {
         val dataUser = User(id = auth.currentUser!!.uid,
             name = auth.currentUser!!.displayName,
             email = auth.currentUser!!.email,
-            password = null,
+            password = password,
             profileImage = "https://firebasestorage.googleapis.com/v0/b/eating-go-dabf0.appspot.com/o/file%2FPuraUlunDanuBratan.jpg?alt=media&token=1027db5d-de67-44f7-ad82-38e6921a7d46",
             role = role)
         if(role == "user") {
@@ -228,9 +231,14 @@ class LoginActivity: AppCompatActivity() {
                 }
             }
         } else {
-            role = "admin"
-            query.document(uid).set(dataUser, SetOptions.merge())
-            query.document(uid).update("role", "admin")
+            query.document(uid).get().addOnSuccessListener { doc ->
+                if(doc != null) {
+                    role = doc.toObject<User>()!!.role
+                } else {
+                    query.document(uid).set(dataUser, SetOptions.merge())
+                    query.document(uid).update("role", "admin")
+                }
+            }
         }
     }
 }

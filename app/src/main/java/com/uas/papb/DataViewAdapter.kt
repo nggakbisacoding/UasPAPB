@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.uas.papb.data.Item
 
-class DataListAdapter(private val mList: List<Item>) : RecyclerView.Adapter<DataListAdapter.ViewHolder>() {
+class DataViewAdapter(private val mList: List<Item>) : RecyclerView.Adapter<DataViewAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         // inflates the card_view_design view
         // that is used to hold list item
@@ -53,7 +53,7 @@ class DataListAdapter(private val mList: List<Item>) : RecyclerView.Adapter<Data
     }
 
     private fun onClick(parent: ViewGroup, item: Item) {
-        val intent = Intent(parent.context.applicationContext, DetailMovieUser::class.java)
+        val intent = Intent(parent.context.applicationContext, DetailMovie::class.java)
         intent.putExtra("id", item.id)
         intent.putExtra("name", item.name)
         intent.putExtra("author", item.author)

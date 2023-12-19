@@ -12,11 +12,14 @@ import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.Firebase
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.uas.papb.databinding.ActivitySplashBinding
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
+    private lateinit var binding: ActivitySplashBinding
     private lateinit var sharefpref: SharedPreferences
     private lateinit var auth: FirebaseAuth
     companion object {
@@ -28,7 +31,9 @@ class SplashActivity : AppCompatActivity() {
     private var password: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_splash)
+        FirebaseApp.initializeApp(applicationContext)
+        binding = ActivitySplashBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         auth = Firebase.auth
         sharefpref = getSharedPreferences(SHAREDPREF, Context.MODE_PRIVATE)
         email = sharefpref.getString(EMAIL, null)
