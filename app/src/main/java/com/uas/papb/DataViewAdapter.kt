@@ -53,7 +53,7 @@ class DataViewAdapter(private val mList: List<Item>) : RecyclerView.Adapter<Data
     }
 
     private fun onClick(parent: ViewGroup, item: Item) {
-        val intent = Intent(parent.context.applicationContext, DetailMovie::class.java)
+        val intent = Intent(parent.context.applicationContext, DetailMovieUser::class.java)
         intent.putExtra("id", item.id)
         intent.putExtra("name", item.name)
         intent.putExtra("author", item.author)

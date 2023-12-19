@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.firestore.FirebaseFirestore
-import com.uas.papb.DataViewAdapter
+import com.uas.papb.DataListAdapter
 import com.uas.papb.data.Item
 import com.uas.papb.databinding.FragmentAdminHomeBinding
 
@@ -62,7 +62,7 @@ class AdminHomeFragment : Fragment() {
 
     private fun observeBudgets() {
         budgetListLiveData.observe(viewLifecycleOwner) { budgets ->
-            val adapter = DataViewAdapter(budgets)
+            val adapter = DataListAdapter(budgets)
             binding.listView.adapter = adapter
             binding.listView.layoutManager = LinearLayoutManager(requireContext())
         }

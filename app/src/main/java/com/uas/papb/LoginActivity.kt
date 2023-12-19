@@ -111,6 +111,11 @@ class LoginActivity: AppCompatActivity() {
         networkMonitor.unregisterNetworkCallback(networkCallback)
     }
 
+    override fun onStop() {
+        super.onStop()
+        networkMonitor.unregisterNetworkCallback(networkCallback)
+    }
+
     private fun signin(mail: String, pass: String) {
         if(auth.currentUser != null) {
             val credential = EmailAuthProvider.getCredential(mail, pass)

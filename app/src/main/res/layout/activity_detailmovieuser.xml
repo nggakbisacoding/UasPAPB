@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/content_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:visibility="visible"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/tv_name_detail"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:hint="Name"
+            android:importantForAutofill="no" />
+        <TextView
+            android:id="@+id/tv_desc_detail"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:hint="Description"/>
+        <TextView
+            android:id="@+id/tv_author_detail"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:hint="Author"/>
+        <TextView
+            android:id="@+id/tv_tag_detail"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:hint="Tag"/>
+        <TextView
+            android:id="@+id/tv_image_detail"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:hint="Image Path"/>
+        <TextView
+            android:id="@+id/tv_rating_detail"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:inputType="phone"
+            android:hint="Rating"/>
+        <CheckBox
+            android:id="@+id/add_to_bookmarks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/fontregular"
+            android:text="Add to Bookmark?"
+            android:textSize="18sp"
+            android:padding="7dp"/>
+    </LinearLayout>
+
+</RelativeLayout>

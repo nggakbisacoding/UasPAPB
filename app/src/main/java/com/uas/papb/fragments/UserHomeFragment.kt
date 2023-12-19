@@ -15,7 +15,6 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import com.uas.papb.DataViewAdapter
 import com.uas.papb.R
@@ -30,7 +29,7 @@ class UserHomeFragment : Fragment(){
     private lateinit var binding: FragmentUserHomeBinding
     private lateinit var localdb: ControllerDB
     private lateinit var auth: FirebaseAuth
-    private lateinit var firestore: FirebaseFirestore
+    private val firestore = FirebaseFirestore.getInstance()
     private val budgetCollectionRef = firestore.collection("movie")
     private val budgetListLiveData: MutableLiveData<List<Item>> by lazy {
         MutableLiveData<List<Item>>()
@@ -44,7 +43,6 @@ class UserHomeFragment : Fragment(){
     ): View {
         binding = FragmentUserHomeBinding.inflate(inflater, container, false)
         localdb = ControllerDB.getDatabase(requireContext())
-        firestore = Firebase.firestore
         auth = Firebase.auth
         networkMonitor = NetworkMonitor(requireContext())
         networkMonitor.registerNetworkCallback(networkCallback)
