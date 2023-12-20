@@ -1,17 +1,23 @@
 package com.uas.papb.fragments
 
+import android.net.ConnectivityManager
+import android.net.Network
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.firestore.FirebaseFirestore
 import com.uas.papb.DataListAdapter
+import com.uas.papb.data.ControllerDB
 import com.uas.papb.data.Item
 import com.uas.papb.databinding.FragmentAdminHomeBinding
+import com.uas.papb.util.AddOn.isNetworkAvailable
+import com.uas.papb.util.NetworkMonitor
 
 class AdminHomeFragment : Fragment() {
     private val firestore = FirebaseFirestore.getInstance()
@@ -20,6 +26,8 @@ class AdminHomeFragment : Fragment() {
         MutableLiveData<List<Item>>()
     }
     private lateinit var binding: FragmentAdminHomeBinding
+    private lateinit var localdb: ControllerDB
+    private lateinit var networkMonitor: NetworkMonitor
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -30,6 +38,9 @@ class AdminHomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        localdb = ControllerDB.getDatabase(requireContext())
+        networkMonitor = NetworkMonitor(requireContext())
+        networkMonitor.registerNetworkCallback(networkCallback)
         with(binding) {
             floatAddBtn.setOnClickListener {
                 contentView.visibility = View.GONE
@@ -56,11 +67,33 @@ class AdminHomeFragment : Fragment() {
 
     }
 
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+
+        override fun onAvailable(network: Network) {
+            Toast.makeText(requireContext(), "Internet on sync local database with firestore", Toast.LENGTH_SHORT).show()
+        }
+
+        override fun onLost(network: Network) {
+            Toast.makeText(requireContext(), "Internet off use local Room Database", Toast.LENGTH_SHORT).show()
+            Thread {
+                val data = localdb.ItemDao()!!.getAll()
+                val adapter = DataListAdapter(data)
+                binding.listView.adapter = adapter
+                binding.listView.layoutManager = LinearLayoutManager(requireContext())
+            }
+        }
+    }
+
     private fun getAllBudgets() {
-        observeBudgetChanges()
+        if(isNetworkAvailable(requireContext())) {
+            observeBudgetChanges()
+        }
     }
 
     private fun observeBudgets() {
+        if(!isNetworkAvailable(requireContext())) {
+            return
+        }
         budgetListLiveData.observe(viewLifecycleOwner) { budgets ->
             val adapter = DataListAdapter(budgets)
             binding.listView.adapter = adapter
@@ -77,24 +110,41 @@ class AdminHomeFragment : Fragment() {
             val items = snapshots?.toObjects(Item::class.java)
             if (items != null) {
                 budgetListLiveData.postValue(items)
+                for(i in items) {
+                    Thread {
+                        if(localdb.ItemDao()!!.selectById(i.id) != null) {
+                            localdb.ItemDao()!!.insert(i)
+                        }
+                    }
+                }
             }
 
         }
     }
 
     private fun addBudget(item: Item) {
-        budgetCollectionRef.add(item)
-            .addOnSuccessListener { documentReference ->
-                val createdBudgetId = documentReference.id
-                item.id = createdBudgetId
-                documentReference.set(item)
-                    .addOnFailureListener {
-                        Log.d("MainActivity", "Error updating budget ID: ", it)
-                    }
+        if(isNetworkAvailable(requireContext())) {
+            budgetCollectionRef.add(item)
+                .addOnSuccessListener { documentReference ->
+                    val createdBudgetId = documentReference.id
+                    item.id = createdBudgetId
+                    documentReference.set(item)
+                        .addOnFailureListener {
+                            Log.d("MainActivity", "Error updating budget ID: ", it)
+                        }
+                }
+                .addOnFailureListener {
+                    Log.d(TAG, "Error adding budget: ", it)
+                }
+        } else {
+            Thread {
+                if(localdb.ItemDao()!!.selectById(item.id) != null) {
+                    localdb.ItemDao()!!.update(item)
+                } else {
+                    localdb.ItemDao()!!.insert(item)
+                }
             }
-            .addOnFailureListener {
-                Log.d(TAG, "Error adding budget: ", it)
-            }
+        }
     }
 
     companion object {

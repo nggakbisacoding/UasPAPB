@@ -14,7 +14,7 @@ interface ItemDao {
     fun getAll(): List<Item>
 
     @Query("SELECT * FROM item WHERE id LIKE :itemId")
-    fun selectById(itemId: String): Item
+    fun selectById(itemId: String): Item?
 
     @Delete
     fun delete(item: Item)
