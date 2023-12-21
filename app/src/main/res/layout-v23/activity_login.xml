@@ -72,6 +72,7 @@
         android:padding="16dp"
         android:textColor="@color/white_light"
         android:textColorHint="#69F0AE"
+        app:endIconMode="password_toggle"
         app:layout_constraintEnd_toStartOf="@id/guideline_right"
         app:layout_constraintStart_toStartOf="@id/guideline_left"
         app:layout_constraintTop_toBottomOf="@+id/email" />

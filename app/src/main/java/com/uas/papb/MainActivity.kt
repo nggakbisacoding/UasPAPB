@@ -14,17 +14,20 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
+import com.uas.papb.data.ControllerDB
 import com.uas.papb.databinding.ActivityMainBinding
 import com.uas.papb.fragments.AdminHomeFragment
 import com.uas.papb.fragments.BookmarkFragment
 import com.uas.papb.fragments.ProfileFragment
 import com.uas.papb.fragments.UserHomeFragment
+import com.uas.papb.util.AddOn.isNetworkAvailable
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding : ActivityMainBinding
     private lateinit var firedb: FirebaseFirestore
     private lateinit var fireauth: FirebaseAuth
     private lateinit var sharedpref: SharedPreferences
+    private lateinit var localdb: ControllerDB
     companion object {
         const val SHAREDPREF = "shared_keys"
         const val EMAIL = "email"
@@ -35,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private var email: String? = null
     private var password: String? = null
     private var roles: String? = ROLE
+    private var foundUser: Boolean? = false
 
     private fun switchFragment(fragment: Fragment) {
         val fragmentManager = supportFragmentManager
@@ -49,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         firedb = Firebase.firestore
         setContentView(binding.root)
         fireauth = Firebase.auth
+        localdb = ControllerDB.getDatabase(applicationContext)
         sharedpref = getSharedPreferences(SHAREDPREF, Context.MODE_PRIVATE)
         email = sharedpref.getString(EMAIL, null)
         password = sharedpref.getString(PASS, null)
@@ -69,13 +74,22 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        if(email != fireauth.currentUser?.email.toString()) {
-            val editor = sharedpref.edit()
-            editor.clear()
-            editor.apply()
+        if(isNetworkAvailable(baseContext)) {
+            if(email != fireauth.currentUser?.email.toString()) {
+                val editor = sharedpref.edit()
+                editor.clear()
+                editor.apply()
+            }
+            val currentUser = fireauth.currentUser
+            updateUI(currentUser)
+        } else {
+            Thread {
+                foundUser = localdb.UserDao()?.findbyEmail(email!!) == null
+            }
+            if(!foundUser!!) {
+                Toast.makeText(baseContext, "Cannot find email in localdb please do signup", Toast.LENGTH_SHORT).show()
+            }
         }
-        val currentUser = fireauth.currentUser
-        updateUI(currentUser)
     }
 
     private fun updateUI(user: FirebaseUser?) {

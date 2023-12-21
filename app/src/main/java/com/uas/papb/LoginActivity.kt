@@ -15,7 +15,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import com.uas.papb.data.ControllerDB
@@ -120,11 +119,12 @@ class LoginActivity: AppCompatActivity() {
         if(auth.currentUser != null) {
             val credential = EmailAuthProvider.getCredential(mail, pass)
             auth.currentUser!!.reauthenticate(credential)
+            checkDataUser()
         } else {
             auth.signInWithEmailAndPassword(mail, pass).addOnCompleteListener {
                 if(it.isSuccessful) {
-                    checkShared(mail,pass)
                     checkDataUser()
+                    checkShared(mail,pass)
                     checkIfEmailVerified()
                 } else {
                     Toast.makeText(this, "Login failed", Toast.LENGTH_SHORT).show()
@@ -169,7 +169,6 @@ class LoginActivity: AppCompatActivity() {
         if(user == null) {
             return
         }
-
         this.startActivity(Intent(baseContext, MainActivity::class.java))
         finish()
     }
@@ -231,18 +230,35 @@ class LoginActivity: AppCompatActivity() {
             query.document(uid).get().addOnSuccessListener { dokumen ->
                 if(dokumen == null) {
                     query.document(uid).set(dataUser)
-                } else {
-                    role = dokumen.toObject<User>()!!.role
+                    query.document(uid).update("role", "user")
                 }
+                role = dokumen.toObject<User>()!!.role
             }
         } else {
             query.document(uid).get().addOnSuccessListener { doc ->
                 if(doc != null) {
-                    role = doc.toObject<User>()!!.role
+                    val data = doc.toObject<User>()
+                    if(data?.role == "user") {
+                        role = data.role
+                    } else {
+                        role = "admin"
+                        query.document(uid).update("role", "admin")
+                    }
                 } else {
-                    query.document(uid).set(dataUser, SetOptions.merge())
+                    query.document(uid).set(dataUser)
                     query.document(uid).update("role", "admin")
+                    role = "admin"
                 }
+            }
+        }
+        val editor = sharedpref.edit()
+        editor.putString(ROLES, role)
+        editor.apply()
+        Thread {
+            if(db.UserDao()?.findbyEmail(email!!) == null) {
+                db.UserDao()?.insert(dataUser)
+            } else {
+                db.UserDao()?.update(dataUser)
             }
         }
     }

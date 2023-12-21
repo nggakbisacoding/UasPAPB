@@ -23,6 +23,7 @@ import com.uas.papb.data.ControllerDB
 import com.uas.papb.data.User
 import com.uas.papb.data.UserDao
 import com.uas.papb.databinding.ActivitySignupBinding
+import com.uas.papb.util.AddOn.isNetworkAvailable
 import com.uas.papb.util.AddOn.isValidString
 import com.uas.papb.util.AddOn.notEmpty
 import com.uas.papb.util.NetworkMonitor
@@ -97,10 +98,14 @@ class SignupActivity: AppCompatActivity() {
     }
 
     private fun signUp() {
+        if(!isNetworkAvailable(baseContext)) {
+            Toast.makeText(baseContext, "Currently signup only available if internet online", Toast.LENGTH_SHORT).show()
+            return
+        }
         val usermail = etEmail.editText?.text.toString()
         val userpass = etPass.editText?.text.toString()
         if(!isValidString(usermail)) {
-            etEmail.error = "Please enter your Email id"
+            etEmail.error = "Please enter valid email"
             etEmail.requestFocus()
             return
         }

@@ -18,7 +18,7 @@ interface UserDao {
     fun loadAllByIds(userIds: ArrayList<String>): List<User>
 
     @Query("SELECT * FROM user WHERE email LIKE :email")
-    fun findbyEmail(email: String): User
+    fun findbyEmail(email: String): User?
 
     @Query("SELECT * FROM user WHERE id LIKE :userId")
     fun selectById(userId: String): User

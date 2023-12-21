@@ -75,25 +75,20 @@ class AdminHomeFragment : Fragment() {
 
         override fun onLost(network: Network) {
             Toast.makeText(requireContext(), "Internet off use local Room Database", Toast.LENGTH_SHORT).show()
-            Thread {
-                val data = localdb.ItemDao()!!.getAll()
-                val adapter = DataListAdapter(data)
-                binding.listView.adapter = adapter
-                binding.listView.layoutManager = LinearLayoutManager(requireContext())
-            }
         }
     }
 
     private fun getAllBudgets() {
         if(isNetworkAvailable(requireContext())) {
             observeBudgetChanges()
+        } else {
+            localdb.ItemDao()!!.allNotes.observe(viewLifecycleOwner) {
+                budgetListLiveData.postValue(it)
+            }
         }
     }
 
     private fun observeBudgets() {
-        if(!isNetworkAvailable(requireContext())) {
-            return
-        }
         budgetListLiveData.observe(viewLifecycleOwner) { budgets ->
             val adapter = DataListAdapter(budgets)
             binding.listView.adapter = adapter
@@ -102,6 +97,9 @@ class AdminHomeFragment : Fragment() {
     }
 
     private fun observeBudgetChanges() {
+        if(!isNetworkAvailable(requireContext())) {
+            return
+        }
         budgetCollectionRef.addSnapshotListener { snapshots, error ->
             if (error != null) {
                 Log.d("MainActivity", "Error listening for budget changes: ", error)

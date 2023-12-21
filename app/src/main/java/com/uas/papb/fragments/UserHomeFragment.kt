@@ -24,11 +24,14 @@ import com.uas.papb.data.ItemDao
 import com.uas.papb.databinding.FragmentUserHomeBinding
 import com.uas.papb.util.AddOn.isNetworkAvailable
 import com.uas.papb.util.NetworkMonitor
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class UserHomeFragment : Fragment(){
     private lateinit var binding: FragmentUserHomeBinding
     private lateinit var localdb: ControllerDB
     private lateinit var auth: FirebaseAuth
+    private lateinit var executorService: ExecutorService
     private val firestore = FirebaseFirestore.getInstance()
     private val budgetCollectionRef = firestore.collection("movie")
     private val budgetListLiveData: MutableLiveData<List<Item>> by lazy {
@@ -36,7 +39,6 @@ class UserHomeFragment : Fragment(){
     }
     private lateinit var itemDao: ItemDao
     private lateinit var networkMonitor: NetworkMonitor
-    private var data: List<Item>? = null
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -54,7 +56,7 @@ class UserHomeFragment : Fragment(){
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        executorService = Executors.newSingleThreadExecutor()
         FirebaseFirestore.setLoggingEnabled(true)
 
         observeBudgets()
@@ -76,7 +78,14 @@ class UserHomeFragment : Fragment(){
     }
 
     private fun getAllBudgets() {
-        observeBudgetChanges()
+        if(isNetworkAvailable(requireContext())) {
+            observeBudgetChanges()
+        } else {
+            itemDao.allNotes.observe(viewLifecycleOwner) {
+                println(it)
+                budgetListLiveData.postValue(it)
+            }
+        }
     }
 
     private fun observeBudgets() {
@@ -88,6 +97,9 @@ class UserHomeFragment : Fragment(){
     }
 
     private fun observeBudgetChanges() {
+        if(!isNetworkAvailable(requireContext())) {
+            return
+        }
         budgetCollectionRef.addSnapshotListener { snapshots, error ->
             if (error != null) {
                 Log.d("MainActivity", "Error listening for budget changes: ", error)
@@ -97,7 +109,6 @@ class UserHomeFragment : Fragment(){
             if (items != null) {
                 budgetListLiveData.postValue(items)
             }
-
         }
     }
 
@@ -121,23 +132,20 @@ class UserHomeFragment : Fragment(){
         override fun onLost(network: Network) {
             Toast.makeText(requireContext(), "Internet off use local Room Database", Toast.LENGTH_SHORT).show()
             Thread {
-                data = itemDao.getAll()
-            }.start()
-            val adapter = DataViewAdapter(data!!)
-            binding.popularMovies.adapter = adapter
-            binding.popularMovies.layoutManager = LinearLayoutManager(requireContext())
+                val data = localdb.ItemDao()!!.allNotes.value
+                println(data)
+                budgetListLiveData.postValue(data)
+            }
         }
     }
 
     private fun getAllData() {
-        if(isNetworkAvailable(requireContext())) {
+        if(!isNetworkAvailable(requireContext())) {
             return
         } else {
             budgetListLiveData.observe(viewLifecycleOwner) {
                 for(i in it) {
-                    Thread {
-                        localdb.ItemDao()?.insert(i)
-                    }.start()
+                    executorService.execute{localdb.ItemDao()?.insert(i)}
                 }
             }
         }
