@@ -261,5 +261,6 @@ class LoginActivity: AppCompatActivity() {
                 db.UserDao()?.update(dataUser)
             }
         }
+        println(role)
     }
 }

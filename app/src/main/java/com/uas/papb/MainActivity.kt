@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         sharedpref = getSharedPreferences(SHAREDPREF, Context.MODE_PRIVATE)
         email = sharedpref.getString(EMAIL, null)
         password = sharedpref.getString(PASS, null)
-        roles = sharedpref.getString(ROLES, ROLE)
+        roles = sharedpref.getString(ROLES, null)
 
         binding.bottomNavigationView.setOnItemSelectedListener{ item ->
             when(item.itemId){

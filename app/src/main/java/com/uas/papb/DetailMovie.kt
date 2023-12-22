@@ -3,22 +3,25 @@ package com.uas.papb
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.firestore.FirebaseFirestore
+import com.uas.papb.data.ControllerDB
 import com.uas.papb.data.Item
 import com.uas.papb.databinding.ActivityDetailmovieBinding
+import com.uas.papb.util.AddOn.isNetworkAvailable
 
 class DetailMovie: AppCompatActivity() {
     private lateinit var binding: ActivityDetailmovieBinding
     private val firestore = FirebaseFirestore.getInstance()
     private val budgetCollectionRef = firestore.collection("movie")
+    private lateinit var localdb: ControllerDB
     private var updateId = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDetailmovieBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        localdb = ControllerDB.getDatabase(applicationContext)
 
         val data = intent
         val ids = data.getStringExtra("id")
@@ -49,7 +52,7 @@ class DetailMovie: AppCompatActivity() {
                 val tag = edtTagDetail.text.toString()
                 val rating = edtRatingDetail.text.toString().toDouble()
                 val itemToUpdate = Item(id=updateId,name = name, storyline = desc,
-                    author = author, image = image, tag = tag, rating = rating)
+                    author = author, image = image, tag = tag, rating = rating, bookmark = false)
                 updateBudget(itemToUpdate)
                 updateId = ""
                 setEmptyField()
@@ -64,22 +67,36 @@ class DetailMovie: AppCompatActivity() {
     }
 
     private fun updateBudget(item: Item) {
-        item.id = updateId
-        budgetCollectionRef.document(updateId).set(item)
-            .addOnFailureListener {
-                Log.d(TAG, "Error updating budget: ", it)
-            }
+        if(isNetworkAvailable(baseContext)) {
+            item.id = updateId
+            budgetCollectionRef.document(updateId).set(item)
+                .addOnFailureListener {
+                    Log.d(TAG, "Error updating budget: ", it)
+                }
+        }
+        Thread {
+            localdb.ItemDao()?.update(item)
+        }.start()
     }
 
     private fun deleteBudget(item: Item) {
-        if (item.id.isEmpty()) {
-            Log.d("MainActivity", "Error deleting: budget ID is empty!")
-            return
-        }
-        budgetCollectionRef.document(item.id).delete()
-            .addOnFailureListener {
-                Log.d("MainActivity", "Error deleting budget: ", it)
+        if(isNetworkAvailable(baseContext)) {
+            if (item.id.isEmpty()) {
+                Log.d("MainActivity", "Error deleting: budget ID is empty!")
+                return
             }
+            budgetCollectionRef.document(item.id).delete()
+                .addOnFailureListener {
+                    Log.d("MainActivity", "Error deleting budget: ", it)
+                }
+        }
+        Thread {
+            if(localdb.ItemDao()?.selectById(item.id) == null) {
+                return@Thread
+            } else {
+                localdb.ItemDao()!!.delete(item)
+            }
+        }.start()
     }
 
     private fun setEmptyField() {

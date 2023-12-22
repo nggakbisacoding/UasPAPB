@@ -3,10 +3,15 @@ package com.uas.papb
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.firestore.FirebaseFirestore
+import com.uas.papb.data.ControllerDB
 import com.uas.papb.databinding.ActivityDetailmovieuserBinding
 
 class DetailMovieUser: AppCompatActivity() {
     private lateinit var binding: ActivityDetailmovieuserBinding
+    private lateinit var localdb: ControllerDB
+    private val firestore = FirebaseFirestore.getInstance()
+    private val collectionMovie = firestore.collection("items")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDetailmovieuserBinding.inflate(layoutInflater)
@@ -30,6 +35,7 @@ class DetailMovieUser: AppCompatActivity() {
 
             addToBookmarks.setOnCheckedChangeListener { _, isChecked ->
                 if(isChecked) {
+
                     Toast.makeText(baseContext, "Added to Bookmark", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(baseContext, "Delete from Bookmark", Toast.LENGTH_SHORT).show()

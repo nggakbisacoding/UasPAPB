@@ -13,4 +13,5 @@ data class Item(
     @ColumnInfo(name = "storyline") var storyline: String? = null,
     @ColumnInfo(name = "image") var image: String? = null,
     @ColumnInfo(name = "rating") var rating: Double? = null,
+    @ColumnInfo(name = "bookmark") var bookmark: Boolean? = false
 )

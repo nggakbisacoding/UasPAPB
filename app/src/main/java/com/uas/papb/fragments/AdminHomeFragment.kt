@@ -55,7 +55,7 @@ class AdminHomeFragment : Fragment() {
                 val tag = edtTag.text.toString()
                 val rating = edtRating.text.toString().toDouble()
                 val newItem = Item(name = name, storyline = desc,
-                    author = author, image = image, tag = tag, rating = rating)
+                    author = author, image = image, tag = tag, rating = rating, bookmark = false)
                 addBudget(newItem)
                 contentView.visibility = View.VISIBLE
                 contentPanel.visibility = View.GONE
