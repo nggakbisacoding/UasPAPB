@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNavigationView.setOnItemSelectedListener{ item ->
             when(item.itemId){
                 R.id.home -> if(roles == "user") switchFragment(UserHomeFragment()) else switchFragment(AdminHomeFragment())
-                R.id.bookmarks -> switchFragment(BookmarkFragment())
+                R.id.bookmarks -> if(roles != "user") Toast.makeText(baseContext, "Admin can use this feature", Toast.LENGTH_SHORT).show() else switchFragment(BookmarkFragment())
                 R.id.profile -> switchFragment(ProfileFragment())
                 else -> {
                     Toast.makeText(baseContext, "Fragment Invalid!", Toast.LENGTH_SHORT).show()

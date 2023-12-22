@@ -1,6 +1,8 @@
 package com.uas.papb.fragments
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -26,6 +28,10 @@ class ProfileFragment : Fragment() {
     private lateinit var binding : FragmentProfileBinding
     private lateinit var auth: FirebaseAuth
     private lateinit var firestore: FirebaseFirestore
+    private lateinit var sharefpref: SharedPreferences
+    companion object {
+        const val SHAREDPREF = "shared_keys"
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,6 +43,11 @@ class ProfileFragment : Fragment() {
         binding = FragmentProfileBinding.inflate(inflater, container, false)
         auth = Firebase.auth
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        sharefpref = requireActivity().getSharedPreferences(SHAREDPREF, Context.MODE_PRIVATE)
     }
 
     override fun onStart() {
@@ -68,6 +79,9 @@ class ProfileFragment : Fragment() {
         }
 
         binding.logoutBtn.setOnClickListener {
+            val edit = sharefpref.edit()
+            edit.clear()
+            edit.apply()
             Firebase.auth.signOut()
             startActivity(Intent(requireContext(), SplashActivity::class.java))
             onDestroy()

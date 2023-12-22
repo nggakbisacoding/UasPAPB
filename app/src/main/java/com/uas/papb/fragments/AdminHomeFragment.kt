@@ -1,17 +1,23 @@
 package com.uas.papb.fragments
 
+import android.annotation.SuppressLint
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.storage
 import com.uas.papb.DataListAdapter
 import com.uas.papb.data.ControllerDB
 import com.uas.papb.data.Item
@@ -21,10 +27,12 @@ import com.uas.papb.util.NetworkMonitor
 
 class AdminHomeFragment : Fragment() {
     private val firestore = FirebaseFirestore.getInstance()
+    private lateinit var storageRef: StorageReference
     private val budgetCollectionRef = firestore.collection("movie")
     private val budgetListLiveData: MutableLiveData<List<Item>> by lazy {
         MutableLiveData<List<Item>>()
     }
+    private var imageUris: Uri? = null
     private lateinit var binding: FragmentAdminHomeBinding
     private lateinit var localdb: ControllerDB
     private lateinit var networkMonitor: NetworkMonitor
@@ -41,21 +49,24 @@ class AdminHomeFragment : Fragment() {
         localdb = ControllerDB.getDatabase(requireContext())
         networkMonitor = NetworkMonitor(requireContext())
         networkMonitor.registerNetworkCallback(networkCallback)
+        storageRef = Firebase.storage.reference
         with(binding) {
             floatAddBtn.setOnClickListener {
                 contentView.visibility = View.GONE
                 contentPanel.visibility = View.VISIBLE
                 floatAddBtn.visibility = View.GONE
             }
+            edtImage.setOnClickListener {
+                galleryLauncher.launch("image/*")
+            }
             btnAdd.setOnClickListener {
                 val name = edtName.text.toString()
                 val desc = edtDesc.text.toString()
                 val author = edtAuthor.text.toString()
-                val image = edtImage.text.toString()
                 val tag = edtTag.text.toString()
                 val rating = edtRating.text.toString().toDouble()
                 val newItem = Item(name = name, storyline = desc,
-                    author = author, image = image, tag = tag, rating = rating, bookmark = false)
+                    author = author, image = imageUris.toString(), tag = tag, rating = rating, bookmark = "false")
                 addBudget(newItem)
                 contentView.visibility = View.VISIBLE
                 contentPanel.visibility = View.GONE
@@ -75,6 +86,22 @@ class AdminHomeFragment : Fragment() {
 
         override fun onLost(network: Network) {
             Toast.makeText(requireContext(), "Internet off use local Room Database", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        try{
+            val sd = getFileName(uri!!)
+            storageRef.child("file/$sd.jpg").putFile(uri).addOnSuccessListener { _ ->
+                storageRef.child("file/$sd.jpg").downloadUrl.addOnSuccessListener {url ->
+                    val photoUri: String?
+                    photoUri = url.toString()
+                    imageUris = Uri.parse(photoUri)
+                }
+            }
+            binding.edtImage.setImageURI(uri)
+        }catch(e:Exception){
+            e.printStackTrace()
         }
     }
 
@@ -143,6 +170,11 @@ class AdminHomeFragment : Fragment() {
                 }
             }
         }
+    }
+
+    @SuppressLint("Range")
+    private fun getFileName(uri: Uri): String? {
+        return uri.path?.lastIndexOf('/')?.let { uri.path?.substring(it) }
     }
 
     companion object {

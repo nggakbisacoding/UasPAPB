@@ -98,10 +98,6 @@ class SignupActivity: AppCompatActivity() {
     }
 
     private fun signUp() {
-        if(!isNetworkAvailable(baseContext)) {
-            Toast.makeText(baseContext, "Currently signup only available if internet online", Toast.LENGTH_SHORT).show()
-            return
-        }
         val usermail = etEmail.editText?.text.toString()
         val userpass = etPass.editText?.text.toString()
         if(!isValidString(usermail)) {
@@ -122,39 +118,60 @@ class SignupActivity: AppCompatActivity() {
         }
 
         if(notEmpty(usermail, userpass)) {
-            auth.createUserWithEmailAndPassword(usermail, userpass).addOnCompleteListener {
-                if(it.isSuccessful) {
-                    val user = auth.currentUser
-                    val name: List<String> = etName.editText?.text.toString().split(" ")
-                    val editedName = ArrayList<String>()
-                    for(i in name) {
-                        editedName.add(i.replaceFirstChar { firstChar ->
-                            firstChar.uppercase()})
-                    }
-                    storageRef.child("file/PuraUlunDanuBratan.jpg").downloadUrl.addOnSuccessListener {
-                        val profileUpdates = userProfileChangeRequest {
-                            displayName = editedName.joinToString(separator = " ")
-                            photoUri = it
+            val name: List<String> = etName.editText?.text.toString().split(" ")
+            val editedName = ArrayList<String>()
+            for(i in name) {
+                editedName.add(i.replaceFirstChar { firstChar ->
+                    firstChar.uppercase()})
+            }
+            if(isNetworkAvailable(baseContext)) {
+                auth.createUserWithEmailAndPassword(usermail, userpass).addOnCompleteListener {
+                    if(it.isSuccessful) {
+                        val user = auth.currentUser
+                        storageRef.child("file/PuraUlunDanuBratan.jpg").downloadUrl.addOnSuccessListener {
+                            val profileUpdates = userProfileChangeRequest {
+                                displayName = editedName.joinToString(separator = " ")
+                                photoUri = it
+                            }
+                            user?.updateProfile(profileUpdates)
                         }
-                        user?.updateProfile(profileUpdates)
+                        val collection = firestore.collection("users")
+                        val dataUser = User(
+                            id = user!!.uid,
+                            name = editedName.joinToString(separator = " "),
+                            email = usermail,
+                            password = userpass,
+                            profileImage = "https://firebasestorage.googleapis.com/v0/b/eating-go-dabf0.appspot.com/o/file%2FPuraUlunDanuBratan.jpg?alt=media&token=1027db5d-de67-44f7-ad82-38e6921a7d46",
+                            role = ROLE
+                        )
+                        collection.document(user.uid).set(dataUser)
+                        Thread {
+                            userDao.insert(dataUser)
+                        }.start()
+                        sendEmailVerify(auth.currentUser, usermail, userpass)
+                    } else {
+                        Toast.makeText(this, "Signup failed", Toast.LENGTH_SHORT).show()
                     }
-                    val collection = firestore.collection("users")
-                    val dataUser = User(
-                        id = user!!.uid,
-                        name = editedName.joinToString(separator = " "),
-                        email = usermail,
-                        password = userpass,
-                        profileImage = "https://firebasestorage.googleapis.com/v0/b/eating-go-dabf0.appspot.com/o/file%2FPuraUlunDanuBratan.jpg?alt=media&token=1027db5d-de67-44f7-ad82-38e6921a7d46",
-                        role = ROLE
-                    )
-                    collection.document(user.uid).set(dataUser)
-                    Thread {
-                        userDao.insert(dataUser)
-                    }.start()
-                    sendEmailVerify(auth.currentUser, usermail, userpass)
-                } else {
-                    Toast.makeText(this, "Signup failed", Toast.LENGTH_SHORT).show()
                 }
+            } else {
+                val dataUser = User(
+                    id = "x",
+                    name = editedName.joinToString(separator = " "),
+                    email = usermail,
+                    password = userpass,
+                    profileImage = "https://firebasestorage.googleapis.com/v0/b/eating-go-dabf0.appspot.com/o/file%2FPuraUlunDanuBratan.jpg?alt=media&token=1027db5d-de67-44f7-ad82-38e6921a7d46",
+                    role = ROLE
+                )
+                Thread {
+                    userDao.insert(dataUser)
+                }.start()
+                val editor = sharedpref.edit()
+                editor.putString(EMAIL, usermail)
+                editor.putString(PASS, userpass)
+                editor.putString(ROLES, role)
+                editor.apply()
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
             }
         }
     }

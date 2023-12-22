@@ -1,15 +1,13 @@
 package com.uas.papb.util
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
-import com.google.firebase.auth.FirebaseAuth
-import com.uas.papb.SignupActivity
 import java.util.regex.Pattern
 
 object AddOn {
+
     private val emailpattern = Pattern.compile(
         "[a-zA-Z0-9+._%\\-]{1,256}" +
                 "@" +

@@ -29,4 +29,11 @@
     <color name="greyPrimary">#DE000000</color>
     <color name="greySecondary">#8B000000</color>
     <color name="greyDisabled">#61000000</color>
+    <color name="secondary">#251977</color>
+    <color name="mainWhite">#DEDCEB</color>
+    <color name="mainBlack">#1C1A29</color>
+    <color name="darkerBlack">#131219</color>
+    <color name="secondaryBlack">#38354B</color>
+    <color name="secondaryBlack2">#282633</color>
+    <color name="secondaryLight">#3B1EFF</color>
 </resources>
