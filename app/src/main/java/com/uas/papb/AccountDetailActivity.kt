@@ -37,12 +37,12 @@ class AccountDetailActivity : AppCompatActivity() {
     private lateinit var fname: EditText
     private lateinit var lname: EditText
     private lateinit var phones: EditText
-    private var imageUris: Uri? = null
     private lateinit var pass: EditText
     private lateinit var confPass: EditText
     private lateinit var currentpass: EditText
     private lateinit var firestore: FirebaseFirestore
     private lateinit var storageRef: StorageReference
+    private var currentImage: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = AccountDetailBinding.inflate(layoutInflater)
@@ -81,6 +81,7 @@ class AccountDetailActivity : AppCompatActivity() {
         var url: String
         firestore.collection("users").document(auth.currentUser!!.uid).get().addOnSuccessListener {
             url = it.toObject<User>()?.profileImage!!
+            currentImage = url
             executor.execute {
                 try {
                     val `in` = java.net.URL(url).openStream()
@@ -105,7 +106,13 @@ class AccountDetailActivity : AppCompatActivity() {
             }
             val profiles =  userProfileChangeRequest {
                 displayName = fname.text.toString()+" "+lname.text.toString()
-                photoUri = Uri.parse(imageUris.toString())
+                photoUri = Uri.parse(currentImage)
+            }
+            val query = firestore.collection("users").document(auth.currentUser!!.uid)
+            query.get().addOnSuccessListener {
+                val snapshot = it.toObject<User>()
+                val data = User(id = snapshot!!.id, name = snapshot.name, profileImage = currentImage, password = snapshot.password, role = snapshot.role)
+                query.set(data)
             }
             auth.currentUser?.updateProfile(profiles)?.addOnCompleteListener {
                 Toast.makeText(baseContext, "Profile Updates Successfully", Toast.LENGTH_SHORT).show()
@@ -170,13 +177,7 @@ class AccountDetailActivity : AppCompatActivity() {
                 storageRef.child("file/$sd.jpg").downloadUrl.addOnSuccessListener {url ->
                     val photoUri: String?
                     photoUri = url.toString()
-                    imageUris = Uri.parse(photoUri)
-                    val query = firestore.collection("users").document(auth.currentUser!!.uid)
-                    query.get().addOnSuccessListener {
-                        val snapshot = it.toObject<User>()
-                        val data = User(id = snapshot!!.id, name = snapshot.name, profileImage = photoUri, password = snapshot.password, role = snapshot.role)
-                        query.set(data)
-                    }
+                    currentImage = photoUri
                 }
             }
             binding.profileImage.setImageURI(uri)
